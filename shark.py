@@ -6,8 +6,6 @@ from functools import reduce
 
 
 def getCustomerData(customers):
-
-    customerData = {}
     totalCustomers = len(customers)
     recurringCustomers = 0
 
@@ -22,18 +20,17 @@ def getCustomerData(customers):
         (totalCustomers - recurringCustomers) / totalCustomers, 2)
 
     # Load customer data and return
-    customerData['Total Customers'] = totalCustomers
-    customerData['Retention Rate'] = retentionRate
-    customerData['Recurring Customers'] = recurringCustomers
-
-    return customerData
+    return {
+        'Total Customers': totalCustomers,
+        'Retention Rate': retentionRate,
+        'Recurring Customers': recurringCustomers
+    }
 
 
 def getRiskScore(customers, earnings):
     # Use weighted averages to create a score that gauges risk level based on
     # customer retention, customer volume, and earnings volatility
 
-    riskScoreData = {}
     # Assign weight % and values
     customerVolumeWeight = 0.4
     retentionWeight = 0.5
@@ -70,39 +67,37 @@ def getRiskScore(customers, earnings):
 
         return multiple
 
-    riskScoreData['EBIT Multiple'] = getMultiple(riskScore)
-
-    riskScoreData['Total Customers'] = customers['Total Customers']
-    riskScoreData['Customer Volume Score'] = customerVolumeScore
-    riskScoreData['Customer Volume Weight'] = customerVolumeWeight
-    riskScoreData['Recurring Customers'] = customers['Recurring Customers']
-    riskScoreData['Retention Rate'] = customers['Retention Rate']
-    riskScoreData['Retention Score'] = retentionScore
-    riskScoreData['Retention Weight'] = retentionWeight
-    riskScoreData['Average Earnings'] = round(earnings['Average'])
-    riskScoreData['Average Volatility'] = round(earnings['Volatility'], 2)
-    riskScoreData['Volatility Score'] = volatilityScore
-    riskScoreData['Volatility Weight'] = volatilityWeight
-    riskScoreData['Risk Score'] = riskScore
-
-    return riskScoreData
+    return {
+        'EBIT Multiple': getMultiple(riskScore),
+        'Total Customers': customers['Total Customers'],
+        'Customer Volume Score': customerVolumeScore,
+        'Customer Volume Weight': customerVolumeWeight,
+        'Recurring Customers': customers['Recurring Customers'],
+        'Retention Rate': customers['Retention Rate'],
+        'Retention Score': retentionScore,
+        'Retention Weight': retentionWeight,
+        'Average Earnings': round(earnings['Average']),
+        'Average Volatility': round(earnings['Volatility'], 2),
+        'Volatility Score': volatilityScore,
+        'Volatility Weight': volatilityWeight,
+        'Risk Score': riskScore
+    }
 
 
 def getGrowthRates(earnings):
     rates = []
-    growthRates = {}
 
     # Return growth rates of historical earnings
     for a, b in zip(earnings[::1], earnings[1::1]):
         r = (b - a) / a
         rates.append(r)
 
-    growthRates['Min'] = min(rates)
-    growthRates['Median'] = statistics.median(rates)
-    growthRates['Max'] = max(rates)
-    growthRates['Average'] = sum(rates) / len(rates)
-
-    return growthRates
+    return {
+        'Min': min(rates),
+        'Median': statistics.median(rates),
+        'Max': max(rates),
+        'Average': sum(rates) / len(rates)
+    }
 
 
 def getVolatility(ebit, average):
@@ -122,7 +117,6 @@ def getVolatility(ebit, average):
 
 
 def getEarningsData(sales):
-    earningsData = {}
 
     # Assumption based on e-commerce industry average
     operatingProfitMargin = 0.4
@@ -141,11 +135,11 @@ def getEarningsData(sales):
     averageEarnings = sum(EBIT) / len(EBIT)
     volatility = getVolatility(EBIT, averageEarnings)
 
-    earningsData['EBIT'] = EBIT
-    earningsData['Average'] = averageEarnings
-    earningsData['Volatility'] = volatility
-
-    return earningsData
+    return {
+        'EBIT': EBIT,
+        'Average': averageEarnings,
+        'Volatility': volatility
+    }
 
 
 def getFinalValue(value):
@@ -189,8 +183,6 @@ def getEnterpriseValue():
 
 
 def getFinancials(sales):
-    financials = {}
-
     # Variables for DCF model
     discountRate = 0.1
     corporateTaxRate = 0.21
@@ -248,23 +240,21 @@ def getFinancials(sales):
 
     enterpriseValue = math.floor(sum(NPVcashFlows))
 
-    # Load financials data
-    financials['Earnings Data'] = earningsData
-    financials['EBIT Projections'] = EBITprojections
-    financials['Cash Flow Projections'] = cashFlowProjections
-    financials['Terminal Value'] = terminalValue
-    financials['NPV Cash Flows'] = NPVcashFlows
-    financials['Enterprise Value'] = enterpriseValue
-    financials['Risk Score'] = riskScoreData['Risk Score']
-    financials['Risk Score Data'] = riskScoreData
-    financials['Tax Rate'] = corporateTaxRate
-
-    return financials
+    return {
+        'Earnings Data': earningsData,
+        'EBIT Projections': EBITprojections,
+        'Cash Flow Projections': cashFlowProjections,
+        'Terminal Value': terminalValue,
+        'NPV Cash Flows': NPVcashFlows,
+        'Enterprise Value': enterpriseValue,
+        'Risk Score': riskScoreData['Risk Score'],
+        'Risk Score Data': riskScoreData,
+        'Tax Rate': corporateTaxRate
+    }
 
 
 def getData(csvFile):
     # Return a dictionary object of sales and customer data
-    data = {}
     df = pd.read_csv(csvFile)
 
     # Convert timestamp to date year and sales to a float
@@ -274,13 +264,14 @@ def getData(csvFile):
     # Calculate total annual sales
     df['TOTAL_SALES'] = df['UNIT_PRICE'] * df['QUANTITY']
     sales = df.groupby('ORDERED_AT')['TOTAL_SALES'].sum().to_dict()
-    data['Sales'] = sales
 
     # Calculate customer purchase frequency
     customers = df.groupby('CUSTOMER_ID').CUSTOMER_ID.count().to_dict()
-    data['Customers'] = customers
 
-    return data
+    return {
+        'Sales': sales,
+        'Customers': customers
+    }
 
 
 # ************************************************************************************
