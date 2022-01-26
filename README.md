@@ -1,5 +1,5 @@
 # eSharkTank
-**Determines the valuation of a company using sales data**
+**Intuitively determines the valuation of a company using sales data**
 
 Python
 
